@@ -9,12 +9,17 @@ import (
 
 func main() {
 	m := keyvault.NewManager()
-	r := keyvault.NewRefreshingManager(1*time.Second, m)
+	done := make(chan bool)
 
-	secret := r.GetSecret(6)
+	getSecret := keyvault.RefreshingCerticates(1*time.Second, done, m.GetSecret)
+	secret := getSecret(6)
 
 	for i := 0; i < 3; i++ {
-		fmt.Println(*secret)
+		for i := 0; i < 3; i++ {
+			fmt.Print(*secret[i], ", ")
+		}
+		fmt.Println()
 		time.Sleep(3 * time.Second)
 	}
+	done <- true
 }
